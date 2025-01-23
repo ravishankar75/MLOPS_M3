@@ -2,17 +2,13 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
 
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 
-import mlflow
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.model_selection import GridSearchCV
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -24,41 +20,28 @@ def train_model():
     X_test = pd.read_csv('X_test.csv')
     y_test = pd.read_csv('y_test.csv')
     
-    # Define solvers to tune
-    classifier__solver = ['newton-cg', 'lbfgs', 'liblinear']
+    # Define classifier with their respective hyperparameters
+    
+    model = RandomForestClassifier()
+    
+    params = {
+                'classifier__n_estimators': [ 100, 200],
+                'classifier__criterion': ['entropy', 'log_loss'],
+                'classifier__max_depth': [10, 20],
+                'classifier__min_samples_split': [2, 5]
+            }
+       
+    # Iterate over classifiers
+ 
+    grid_search = GridSearchCV(model, params, scoring='accuracy', cv=5)
+    grid_search.fit( X_train, y_train)
+    
+    # Print best hyperparameters
+    print("Best hyperparameters:")
+    print(grid_search.best_params_)
 
-    # Set MLflow experiment name
-    mlflow.set_experiment("Logistic Regression Solver Tuning")
-
-    # Start experimenting
-    for solver in classifier__solver:
-        with mlflow.start_run(run_name=f"Solver: {solver}"):
-            try:
-                # Train Logistic Regression model
-                model = LogisticRegression(solver=solver, random_state=42, max_iter=1000)
-                model.fit(X_train, y_train)
-
-                # Predict and evaluate
-                y_pred = model.predict(X_test)
-                acc = accuracy_score(y_test, y_pred)
-
-                # Log parameters and metrics
-                mlflow.log_param("solver", solver)
-                mlflow.log_metric("accuracy", acc)
-                
-                # Log the dataset file as an artifact
-                mlflow.log_artifact("X_train.csv", artifact_path="data")
-                
-                # Log model
-                mlflow.sklearn.log_model(model, "model")
-                
-                print(f"Solver: {solver} | Accuracy: {acc}")
-
-            except Exception as e:
-                print(f"Solver {solver} failed with error: {e}")
-                mlflow.log_param("solver", solver)
-                mlflow.log_metric("error", 1)
-
+    # Print best score
+    print("Best cross-validation accuracy: {:.2f}".format(grid_search.best_score_))
 
 if __name__ == "__main__":
     train_model()
