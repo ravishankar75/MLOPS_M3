@@ -1,5 +1,6 @@
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import joblib
 
 from sklearn import preprocessing
 from sklearn.impute import KNNImputer
@@ -67,6 +68,10 @@ def prepare_data():
     
     pd.DataFrame(y_train).to_csv('y_train.csv', index=False)
     pd.DataFrame(y_test).to_csv('y_test.csv', index=False)
+    
+    # Save the imputer / scalar 
+    joblib.dump(knn_imputer, "./model/knn_imputer.pkl")
+    joblib.dump(knn_imputer, "./model/Robust_scaler.pkl")
 
 if __name__ == "__main__":
     prepare_data()
