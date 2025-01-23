@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -25,10 +26,10 @@ def train_model():
     model = RandomForestClassifier()
     
     params = {
-                'classifier__n_estimators': [ 100, 200],
-                'classifier__criterion': ['entropy', 'log_loss'],
-                'classifier__max_depth': [10, 20],
-                'classifier__min_samples_split': [2, 5]
+                'n_estimators': [ 100, 200],
+                'criterion': ['entropy', 'log_loss'],
+                'max_depth': [10, 20],
+                'min_samples_split': [2, 5]
             }
        
     # Iterate over classifiers
@@ -42,6 +43,11 @@ def train_model():
 
     # Print best score
     print("Best cross-validation accuracy: {:.2f}".format(grid_search.best_score_))
+    
+    # Save the best model
+    print("Save best model:")
+    best_model = grid_search.best_estimator_
+    joblib.dump(best_model, "./model/h2o_potable_rnforest.pkl")
 
 if __name__ == "__main__":
     train_model()
