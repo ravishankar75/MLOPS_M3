@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # Load the pre-trained model, scaler, and imputer
 
-model = joblib.load('water_potability_model.pkl')
+model = joblib.load('./model/h2o_potable_rnforest.pkl')
 imputer = joblib.load('./model/knn_imputer.pkll')
 scaler = joblib.load('./model/Robust_scaler.pkl')
 
