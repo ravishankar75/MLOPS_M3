@@ -71,7 +71,7 @@ def prepare_data():
     
     # Save the imputer / scalar 
     joblib.dump(knn_imputer, "./model/knn_imputer.pkl")
-    joblib.dump(knn_imputer, "./model/Robust_scaler.pkl")
+    joblib.dump(Robust_scaler, "./model/Robust_scaler.pkl")
 
 if __name__ == "__main__":
     prepare_data()
