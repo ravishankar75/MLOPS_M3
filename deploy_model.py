@@ -6,9 +6,10 @@ import numpy as np
 app = Flask(__name__)
 
 # Load the pre-trained model, scaler, and imputer
+
 model = joblib.load('water_potability_model.pkl')
-scaler = joblib.load('scaler.pkl')
-imputer = joblib.load('imputer.pkl')
+imputer = joblib.load('./model/knn_imputer.pkll')
+scaler = joblib.load('./model/Robust_scaler.pkl')
 
 @app.route('/predict', methods=['POST'])
 def predict():
