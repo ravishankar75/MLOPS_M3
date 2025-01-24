@@ -26,4 +26,4 @@ COPY models/ /app/models/
 EXPOSE 5000
 
 # Define the command to run the Flask app
-CMD ["python", "app.py"]
+CMD ["python", "deploy_model.py"]
