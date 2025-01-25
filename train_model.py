@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import joblib
+import mlflow
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -22,6 +23,7 @@ def train_model():
     y_test = pd.read_csv('y_test.csv')
     
     # Define classifier with their respective hyperparameters
+    mlflow.set_experiment("Grid Search Random Forest - H20 Potability")
     
     model = RandomForestClassifier()
     
@@ -37,7 +39,18 @@ def train_model():
     grid_search = GridSearchCV(model, params, scoring='accuracy', cv=5)
     grid_search.fit( X_train, y_train)
     
-    # Print best hyperparameters
+    # Print the hyperparameter space and corresponding accuracy
+    print("Hyperparameter combinations and accuracies:")
+          
+    for mean_score, params in zip(grid_search.cv_results_['mean_test_score'], grid_search.cv_results_['params']):
+        with mlflow.start_run():
+            # Log parameters
+            for param, value in params.items():
+                mlflow.log_param(param, value)
+            # Log accuracy
+            mlflow.log_metric("mean_cv_accuracy", mean_score)
+    
+   # Print best hyperparameters
     print("Best hyperparameters:")
     print(grid_search.best_params_)
 
@@ -48,6 +61,10 @@ def train_model():
     print("Save best model:")
     best_model = grid_search.best_estimator_
     joblib.dump(best_model, "./model/h2o_potable_rnforest.pkl")
+    
+    # Log the best model to MLflow
+    mlflow.sklearn.log_model(best_model, "best_model")
+
 
 if __name__ == "__main__":
     train_model()
