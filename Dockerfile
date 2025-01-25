@@ -17,10 +17,10 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the Flask app code into the container
-COPY . /app/
+COPY deploy_model.py /app/
 
 # Copy the model files from the 'model' folder
-COPY models/ /app/model/
+COPY model/ /app/model/
 
 # Expose the port that Flask will run on
 EXPOSE 5000
