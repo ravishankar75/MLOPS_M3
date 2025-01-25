@@ -5,38 +5,54 @@ import numpy as np
 
 app = Flask(__name__)
 
-# Load the pre-trained model, scaler, and imputer
+# Load the saved RobustScaler and the best model
+scaler = joblib.load("./model/robust_scaler.pkl")
+model = joblib.load("./model/h2o_potable_rnforest.pkl")
 
-model = joblib.load('./model/h2o_potable_rnforest.pkl')
-imputer = joblib.load('./model/knn_imputer.pkll')
-scaler = joblib.load('./model/Robust_scaler.pkl')
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({
+        "message": "Welcome to the Water Potability Prediction API!",
+        "instructions": "To check water potability, send a POST request to /checkpotable with the following parameters:",
+        "parameters": [
+            "ph", "Hardness", "Solids", "Chloramines", "Sulfate",
+            "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"
+        ]
+    })
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route("/checkpotable", methods=["POST"])
+def check_potable():
     try:
-        # Get JSON data from request
-        input_data = request.json
-
-        if not input_data or 'features' not in input_data:
-            return jsonify({'error': 'Missing "features" in request data'}), 400
-
-        # Extract features from input JSON
-        features = np.array(input_data['features']).reshape(1, -1)
-
-        # Apply imputation and scaling
-        features_imputed = imputer.transform(features)
-        features_scaled = scaler.transform(features_imputed)
-
-        # Make prediction
-        prediction = model.predict(features_scaled)
-
-        result = "potable" if prediction[0] == 1 else "not potable"
+        # Extract data from request
+        data = request.get_json()
+        features = [
+            "ph", "Hardness", "Solids", "Chloramines", "Sulfate",
+            "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"
+        ]
         
-        return jsonify({'prediction': result, 'input_features': input_data['features']})
-
+        # Validate all required features are provided
+        if not all(feature in data for feature in features):
+            return jsonify({"error": "Missing one or more required parameters.", "required_features": features}), 400
+        
+        # Extract feature values
+        input_data = np.array([[data[feature] for feature in features]])
+        
+        # Scale the input data using the RobustScaler
+        scaled_data = scaler.transform(input_data)
+        
+        # Perform inference using the loaded model
+        prediction = model.predict(scaled_data)
+        
+        # Convert prediction to human-readable output
+        result = "Potable" if prediction[0] == 1 else "Not Potable"
+        
+        return jsonify({
+            "input_data": data,
+            "prediction": result
+        })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+        return jsonify({"error": str(e)}), 500
+###
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
 
